@@ -7,11 +7,12 @@ namespace VallaGestApi.Models
         [Key]
         public int CategoriaId { get; set; }
 
-        [Required(ErrorMessage = "El nombre de la categoría es obligatorio")]
-        [StringLength(50)]
+        [Required]
         public string Nombre { get; set; } = string.Empty;
 
-        // Relación inversa para navegación
+        [Required]
+        public string Descripcion { get; set; } = string.Empty;
+
         public virtual ICollection<Valla>? Vallas { get; set; }
     }
 }

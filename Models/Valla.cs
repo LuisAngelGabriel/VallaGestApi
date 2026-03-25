@@ -8,12 +8,11 @@ namespace VallaGestApi.Models
         [Key]
         public int VallaId { get; set; }
 
-        [Required(ErrorMessage = "El nombre de la valla es obligatorio")]
+        [Required]
         public string Nombre { get; set; } = string.Empty;
 
         public string? Descripcion { get; set; }
 
-        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal PrecioMensual { get; set; }
 
@@ -21,7 +20,6 @@ namespace VallaGestApi.Models
 
         public bool EstaOcupada { get; set; } = false;
 
-        // Relación con Categoría
         public int CategoriaId { get; set; }
 
         [ForeignKey("CategoriaId")]
