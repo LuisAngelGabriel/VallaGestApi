@@ -22,12 +22,47 @@ namespace VallaGestApi.Controllers
             return await _context.Vallas.Include(v => v.Categoria).ToListAsync();
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Valla>> GetValla(int id)
+        {
+            var valla = await _context.Vallas.Include(v => v.Categoria).FirstOrDefaultAsync(v => v.VallaId == id);
+            if (valla == null) return NotFound();
+            return valla;
+        }
+
         [HttpPost]
         public async Task<ActionResult<Valla>> PostValla(Valla valla)
         {
             _context.Vallas.Add(valla);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetVallas), new { id = valla.VallaId }, valla);
+            return CreatedAtAction(nameof(GetValla), new { id = valla.VallaId }, valla);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutValla(int id, Valla valla)
+        {
+            if (id != valla.VallaId) return BadRequest();
+            _context.Entry(valla).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Vallas.Any(e => e.VallaId == id)) return NotFound();
+                throw;
+            }
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteValla(int id)
+        {
+            var valla = await _context.Vallas.FindAsync(id);
+            if (valla == null) return NotFound();
+            _context.Vallas.Remove(valla);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }
