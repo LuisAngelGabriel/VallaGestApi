@@ -5,6 +5,7 @@
         public int VallaId { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; }
+        public string Ubicacion { get; set; } = string.Empty;
         public decimal PrecioMensual { get; set; }
         public string? ImagenUrl { get; set; }
         public bool EstaOcupada { get; set; }

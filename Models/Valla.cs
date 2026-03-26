@@ -13,6 +13,8 @@ namespace VallaGestApi.Models
 
         public string? Descripcion { get; set; }
 
+        public string Ubicacion { get; set; } = string.Empty;
+
         [Column(TypeName = "decimal(18,2)")]
         public decimal PrecioMensual { get; set; }
 

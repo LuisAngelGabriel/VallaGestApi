@@ -25,6 +25,7 @@ namespace VallaGestApi.Controllers
                     v.VallaId,
                     v.Nombre,
                     v.Descripcion,
+                    v.Ubicacion,
                     v.PrecioMensual,
                     v.ImagenUrl,
                     v.EstaOcupada,
