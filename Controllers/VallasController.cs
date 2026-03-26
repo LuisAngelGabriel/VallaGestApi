@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VallaGestApi.DAL;
 using VallaGestApi.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace VallaGestApi.Controllers
 {
@@ -17,9 +17,21 @@ namespace VallaGestApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Valla>>> GetVallas()
+        public async Task<ActionResult<IEnumerable<object>>> GetVallas()
         {
-            return await _context.Vallas.Include(v => v.Categoria).ToListAsync();
+            return await _context.Vallas
+                .Include(v => v.Categoria)
+                .Select(v => new {
+                    v.VallaId,
+                    v.Nombre,
+                    v.Descripcion,
+                    v.PrecioMensual,
+                    v.ImagenUrl,
+                    v.EstaOcupada,
+                    v.CategoriaId,
+                    NombreCategoria = v.Categoria != null ? v.Categoria.Nombre : "Sin Categoría"
+                })
+                .ToListAsync();
         }
 
         [HttpGet("{id}")]
