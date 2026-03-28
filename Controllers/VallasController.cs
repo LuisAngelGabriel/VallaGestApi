@@ -10,17 +10,12 @@ namespace VallaGestApi.Controllers
     public class VallasController : ControllerBase
     {
         private readonly AppDbContext _context;
-
-        public VallasController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public VallasController(AppDbContext context) => _context = context;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetVallas()
         {
-            return await _context.Vallas
-                .Include(v => v.Categoria)
+            return await _context.Vallas.Include(v => v.Categoria)
                 .Select(v => new {
                     v.VallaId,
                     v.Nombre,
@@ -31,46 +26,32 @@ namespace VallaGestApi.Controllers
                     v.EstaOcupada,
                     v.CategoriaId,
                     NombreCategoria = v.Categoria != null ? v.Categoria.Nombre : "Sin Categoría"
-                })
-                .ToListAsync();
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Valla>> GetValla(int id)
-        {
-            var valla = await _context.Vallas.Include(v => v.Categoria).FirstOrDefaultAsync(v => v.VallaId == id);
-            if (valla == null) return NotFound();
-            return valla;
+                }).ToListAsync();
         }
 
         [HttpPost]
-        public async Task<ActionResult<Valla>> PostValla(Valla valla)
+        public async Task<ActionResult<Valla>> PostValla(Valla valla, [FromHeader] string Rol)
         {
+            if (Rol != "Admin") return Forbid();
             _context.Vallas.Add(valla);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetValla), new { id = valla.VallaId }, valla);
+            return Ok(valla);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutValla(int id, Valla valla)
+        public async Task<IActionResult> PutValla(int id, Valla valla, [FromHeader] string Rol)
         {
+            if (Rol != "Admin") return Forbid();
             if (id != valla.VallaId) return BadRequest();
             _context.Entry(valla).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Vallas.Any(e => e.VallaId == id)) return NotFound();
-                throw;
-            }
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteValla(int id)
+        public async Task<IActionResult> DeleteValla(int id, [FromHeader] string Rol)
         {
+            if (Rol != "Admin") return Forbid();
             var valla = await _context.Vallas.FindAsync(id);
             if (valla == null) return NotFound();
             _context.Vallas.Remove(valla);
