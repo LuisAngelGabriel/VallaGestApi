@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VallaGestApi.DAL;
 
@@ -11,9 +12,11 @@ using VallaGestApi.DAL;
 namespace VallaGestApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328225058_ModelosAgregados")]
+    partial class ModelosAgregados
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,7 +158,7 @@ namespace VallaGestApi.Migrations
                             UsuarioId = 1,
                             Email = "admin@vallagest.com",
                             Nombre = "Administrador",
-                            PasswordHash = "$2a$11$qR77EshGZsh6IAnI7YpGTe6H.SPhI6IAnI7YpGTe6H.SPhI6IAnI",
+                            PasswordHash = "$2a$11$8sNlXay9S.GzBOPmS1O7uOn8G6Hk6iH/Y7X8XpYv.G8G8G8G8G8G8",
                             Rol = "Admin"
                         });
                 });
