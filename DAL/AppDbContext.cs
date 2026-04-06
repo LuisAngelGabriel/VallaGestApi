@@ -14,6 +14,6 @@ namespace VallaGestApi.DAL
         public DbSet<Orden> Ordenes { get; set; }
         public DbSet<OrdenDetalle> OrdenDetalles { get; set; }
         }
-    }
-} 
+}
+
 
