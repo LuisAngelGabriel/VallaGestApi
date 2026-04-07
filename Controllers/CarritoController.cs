@@ -10,12 +10,14 @@ namespace VallaGestApi.Controllers
     public class CarritoController : ControllerBase
     {
         private readonly AppDbContext _context;
+
         public CarritoController(AppDbContext context) => _context = context;
 
         [HttpGet("{usuarioId}")]
         public async Task<ActionResult<IEnumerable<object>>> GetCarrito(int usuarioId)
         {
-            return await _context.CarritoItems.Include(c => c.Valla)
+            return await _context.CarritoItems
+                .Include(c => c.Valla)
                 .Where(c => c.UsuarioId == usuarioId)
                 .Select(c => new {
                     c.CarritoItemId,
@@ -39,6 +41,7 @@ namespace VallaGestApi.Controllers
         {
             var item = await _context.CarritoItems.FindAsync(id);
             if (item == null) return NotFound();
+
             _context.CarritoItems.Remove(item);
             await _context.SaveChangesAsync();
             return NoContent();
