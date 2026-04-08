@@ -41,5 +41,34 @@ namespace VallaGestApi.Controllers
 
             return Ok(new UsuarioDto { UsuarioId = usuario.UsuarioId, Nombre = usuario.Nombre, Email = usuario.Email, Rol = usuario.Rol });
         }
+
+        [HttpPut("Actualizar/{id}")]
+        public async Task<IActionResult> Actualizar(int id, [FromBody] RegistroDto dto)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null) return NotFound();
+
+            if (await _context.Usuarios.AnyAsync(u => u.Email == dto.Email && u.UsuarioId != id))
+                return BadRequest("El correo ya está en uso por otro usuario");
+
+            usuario.Nombre = dto.Nombre;
+            usuario.Email = dto.Email;
+
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            }
+
+            _context.Entry(usuario).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new UsuarioDto
+            {
+                UsuarioId = usuario.UsuarioId,
+                Nombre = usuario.Nombre,
+                Email = usuario.Email,
+                Rol = usuario.Rol
+            });
+        }
     }
 }
