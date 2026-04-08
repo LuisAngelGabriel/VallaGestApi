@@ -68,25 +68,27 @@ namespace VallaGestApi.Controllers
         [HttpGet("Historial/{usuarioId}")]
         public async Task<ActionResult<IEnumerable<object>>> GetHistorial(int usuarioId)
         {
-            return await _context.Ordenes
+            var historial = await _context.Ordenes
                 .Include(o => o.Detalles)
                 .ThenInclude(d => d.Valla)
                 .Where(o => o.UsuarioId == usuarioId)
                 .OrderByDescending(o => o.FechaOrden)
                 .Select(o => new {
-                    o.OrdenId,
-                    o.FechaOrden,
-                    o.Total,
-                    Metodo = o.MetodoPago.ToString(),
-                    Estado = o.Estado.ToString(),
-                    o.ComprobanteUrl,
-                    Detalles = o.Detalles.Select(d => new {
-                        NombreValla = d.Valla != null ? d.Valla.Nombre : "Valla no encontrada",
-                        d.PrecioAplicado,
-                        d.VallaId,
-                        d.Meses
+                    ordenId = o.OrdenId,
+                    fechaOrden = o.FechaOrden.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    total = o.Total,
+                    metodo = o.MetodoPago.ToString(),
+                    estado = o.Estado.ToString(),
+                    comprobanteUrl = o.ComprobanteUrl,
+                    detalles = o.Detalles.Select(d => new {
+                        nombreValla = d.Valla != null ? d.Valla.Nombre : "Valla no encontrada",
+                        precioAplicado = d.PrecioAplicado,
+                        vallaId = d.VallaId,
+                        meses = d.Meses
                     })
                 }).ToListAsync();
+
+            return Ok(historial);
         }
 
         [HttpDelete("Cancelar/{ordenId}")]
