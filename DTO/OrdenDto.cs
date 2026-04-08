@@ -1,12 +1,9 @@
-﻿    using VallaGestApi.Models;
-
-namespace VallaGestApi.DTO
+﻿namespace VallaGestApi.DTO
 {
     public class CheckoutDto
     {
-        public MetodoPago Metodo { get; set; }
-        public string? ReciboBase64 { get; set; }
-        public string? Extension { get; set; }
+        public int Metodo { get; set; } 
+        public string? ComprobanteUrl { get; set; } 
     }
 
     public class OrdenDto
@@ -25,5 +22,6 @@ namespace VallaGestApi.DTO
         public int VallaId { get; set; }
         public string NombreValla { get; set; } = string.Empty;
         public decimal PrecioAplicado { get; set; }
+        public int Meses { get; set; }
     }
 }

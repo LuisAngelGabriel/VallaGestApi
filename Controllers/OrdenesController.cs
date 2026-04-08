@@ -13,45 +13,77 @@ namespace VallaGestApi.Controllers
         private readonly AppDbContext _context;
         public OrdenesController(AppDbContext context) => _context = context;
 
-        [HttpPost("Checkout/{usuarioId}")]
-        public async Task<IActionResult> Post(int usuarioId, [FromBody] CheckoutDto dto)
+        [HttpPost("Checkout/{usuarioId}/{meses}")]
+        public async Task<IActionResult> Post(int usuarioId, int meses, [FromBody] CheckoutDto dto)
         {
-            var items = await _context.CarritoItems.Include(c => c.Valla).Where(c => c.UsuarioId == usuarioId).ToListAsync();
-            if (!items.Any()) return BadRequest();
+            var items = await _context.CarritoItems
+                .Include(c => c.Valla)
+                .Where(c => c.UsuarioId == usuarioId)
+                .ToListAsync();
+
+            if (items == null || !items.Any())
+                return BadRequest("El carrito está vacío.");
 
             var orden = new Orden
             {
                 UsuarioId = usuarioId,
-                Total = items.Sum(i => i.Valla!.PrecioMensual),
-                MetodoPago = dto.Metodo,
-                Estado = dto.Metodo == MetodoPago.Transferencia ? EstadoOrden.Pendiente : EstadoOrden.Completado,
-                FechaOrden = DateTime.Now
+                Total = items.Sum(i => (i.Valla?.PrecioMensual ?? 0)) * meses,
+                MetodoPago = (MetodoPago)dto.Metodo,
+                Estado = dto.Metodo == 1 ? EstadoOrden.Pendiente : EstadoOrden.Completado,
+                FechaOrden = DateTime.Now,
+                ComprobanteUrl = dto.ComprobanteUrl,
+                Detalles = new List<OrdenDetalle>()
             };
 
-            if (dto.Metodo == MetodoPago.Transferencia && !string.IsNullOrEmpty(dto.ReciboBase64))
-                orden.ComprobanteUrl = $"uploads/{Guid.NewGuid()}{dto.Extension}";
+            foreach (var item in items)
+            {
+                if (item.Valla != null)
+                {
+                    orden.Detalles.Add(new OrdenDetalle
+                    {
+                        VallaId = item.VallaId,
+                        PrecioAplicado = item.Valla.PrecioMensual
+                    });
 
-            foreach (var i in items)
-                orden.Detalles.Add(new OrdenDetalle { VallaId = i.VallaId, PrecioAplicado = i.Valla!.PrecioMensual });
+                    item.Valla.EstaOcupada = true;
+                    _context.Entry(item.Valla).State = EntityState.Modified;
+                }
+            }
 
-            _context.Ordenes.Add(orden);
-            _context.CarritoItems.RemoveRange(items);
-            await _context.SaveChangesAsync();
-            return Ok(new { orden.OrdenId });
+            try
+            {
+                _context.Ordenes.Add(orden);
+                _context.CarritoItems.RemoveRange(items);
+
+                await _context.SaveChangesAsync();
+                return Ok(new { orden.OrdenId, Total = orden.Total });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpGet("Historial/{usuarioId}")]
         public async Task<ActionResult<IEnumerable<object>>> GetHistorial(int usuarioId)
         {
-            return await _context.Ordenes.Include(o => o.Detalles).ThenInclude(d => d.Valla)
-                .Where(o => o.UsuarioId == usuarioId).OrderByDescending(o => o.FechaOrden)
+            return await _context.Ordenes
+                .Include(o => o.Detalles)
+                .ThenInclude(d => d.Valla)
+                .Where(o => o.UsuarioId == usuarioId)
+                .OrderByDescending(o => o.FechaOrden)
                 .Select(o => new {
                     o.OrdenId,
                     o.FechaOrden,
                     o.Total,
                     Metodo = o.MetodoPago.ToString(),
                     Estado = o.Estado.ToString(),
-                    Detalles = o.Detalles.Select(d => new { d.Valla!.Nombre, d.PrecioAplicado })
+                    o.ComprobanteUrl,
+                    Detalles = o.Detalles.Select(d => new {
+                        Nombre = d.Valla != null ? d.Valla.Nombre : "Valla no encontrada",
+                        d.PrecioAplicado,
+                        VallaId = d.VallaId
+                    })
                 }).ToListAsync();
         }
     }
