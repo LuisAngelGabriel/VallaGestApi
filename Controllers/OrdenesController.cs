@@ -42,7 +42,8 @@ namespace VallaGestApi.Controllers
                     orden.Detalles.Add(new OrdenDetalle
                     {
                         VallaId = item.VallaId,
-                        PrecioAplicado = item.Valla.PrecioMensual
+                        PrecioAplicado = item.Valla.PrecioMensual,
+                        Meses = meses
                     });
 
                     item.Valla.EstaOcupada = true;
@@ -80,11 +81,36 @@ namespace VallaGestApi.Controllers
                     Estado = o.Estado.ToString(),
                     o.ComprobanteUrl,
                     Detalles = o.Detalles.Select(d => new {
-                        Nombre = d.Valla != null ? d.Valla.Nombre : "Valla no encontrada",
+                        NombreValla = d.Valla != null ? d.Valla.Nombre : "Valla no encontrada",
                         d.PrecioAplicado,
-                        VallaId = d.VallaId
+                        d.VallaId,
+                        d.Meses
                     })
                 }).ToListAsync();
+        }
+
+        [HttpDelete("Cancelar/{ordenId}")]
+        public async Task<IActionResult> CancelarOrden(int ordenId)
+        {
+            var orden = await _context.Ordenes
+                .Include(o => o.Detalles)
+                .FirstOrDefaultAsync(o => o.OrdenId == ordenId);
+
+            if (orden == null) return NotFound();
+
+            foreach (var detalle in orden.Detalles)
+            {
+                var valla = await _context.Vallas.FindAsync(detalle.VallaId);
+                if (valla != null)
+                {
+                    valla.EstaOcupada = false;
+                    _context.Entry(valla).State = EntityState.Modified;
+                }
+            }
+
+            _context.Ordenes.Remove(orden);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
     }
 }
