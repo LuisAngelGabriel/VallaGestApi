@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VallaGestApi.Models
 {
@@ -9,12 +10,22 @@ namespace VallaGestApi.Models
     {
         [Key]
         public int OrdenId { get; set; }
+
         public int UsuarioId { get; set; }
+
+        [ForeignKey("UsuarioId")]
+        public virtual Usuario? Usuario { get; set; }
+
         public DateTime FechaOrden { get; set; } = DateTime.Now;
+
         public decimal Total { get; set; }
+
         public MetodoPago MetodoPago { get; set; }
+
         public EstadoOrden Estado { get; set; } = EstadoOrden.Pendiente;
+
         public string? ComprobanteUrl { get; set; }
+
         public virtual ICollection<OrdenDetalle> Detalles { get; set; } = new List<OrdenDetalle>();
     }
 }
